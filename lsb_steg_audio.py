@@ -77,7 +77,7 @@ def binary_steg_hide_naive(audio, binary, result, steg_bit_depth):
         samplewidth = w.getsamplewidth() # also, by default WAV is little endian, i.e. least significant bits have the lowest addresses
 
 	# try not to damage the metadata
-	w.getnframes(UNCONFIRMED_MAGIC_NUMBER_WAV_HEADER_FRAMES) 
+	w.getnframes(UNCONFIRMED_MAGIC_NUMBER_WAV_HEADER_FRAMES)
 
 	# decompose payload (this depends on the strategy)
         # TODO use bitarray thingy library, this also depends on the nchannels
@@ -94,6 +94,7 @@ def binary_steg_hide_naive(audio, binary, result, steg_bit_depth):
         
         wresult.close()
         #w.close()
+
 
 def binary_steg_reveal_naive(steg_audio, out, steg_bit_depth):
     pass
@@ -123,11 +124,6 @@ def main(av):
     bgroup = parser.add_argument_group("Reveal binary")
     bgroup.add_argument('-steg-audio', help='The steganographic audio')
     bgroup.add_argument('-out', help='The original binary')
-
-    if av[i] == 'test':
-      import doctest
-      doctest.testmod()
-      return
 
     args = parser.parse_args(av[1:])
 
