@@ -41,19 +41,55 @@ echo 'import site; site.addsitedir("/usr/local/lib/python2.7/site-packages")' >>
 ```
 """
 
+import wave
+
+UNCONFIRMED_MAGIC_NUMBER_WAV_HEADER_FRAMES = 44
+
+'''
+xor bits of the payload to the current frame
+'''
+def lsb_steg_op(bits, frame):
+    # bits size determines how much to shift by
+    shift_by_n = bits.bit_length()
+    # shit... you're screwing with one channel
+#    frame >> shift_by_n
+#    frame << shift_by_n # the LSBs are zeroed out
+    pass
 
 
 '''
 Methods to expose this functionality to the command-line
 '''
-def binary_steg_hide(audio, binary, result):
-    pass
-#    carrier = cv.Loadaudio(audio)
-#    steg = LSBSteg(carrier)
-#    steg.hideBin(binary)
-#    steg.saveaudio(result)
+def binary_steg_hide_naive(audio, binary, result, steg_bit_depth):
+    with wave.open(audio) as w:
+        wresult = wave.open(result, 'wb+')
 
-def binary_steg_reveal(steg_audio, out):
+        # retain params
+	params = w.getparams()
+	print params
+        wresult.setparams(params)
+
+        # TODO calculate if the payload will actually fit, depending on the LSB Steg strategy
+        bits = []
+        samplewidth = w.getsamplewidth() # also, by default WAV is little endian, i.e. least significant bits have the lowest addresses
+
+	# try not to damage the metadata
+	w.getnframes(UNCONFIRMED_MAGIC_NUMBER_WAV_HEADER_FRAMES) 
+
+	# superduper inefficient in-memory operation
+        # IDEA use decorator to plugin LSB Steg algorithm
+        newframes = []
+
+	for i in range(w.getnframes()):
+	    newframes.append(lsb_steg_naive_op(bits[i], w.readframes(1)))
+
+	# collate steg'd results
+        wresult.writeframesraw(''.join(newframes))
+        
+        wresult.close()
+        w.close()
+
+def binary_steg_reveal_naive(steg_audio, out, steg_bit_depth):
     pass
 #    inp = cv.Loadaudio(steg_audio)
 #    steg = LSBSteg(inp)
@@ -67,7 +103,13 @@ import argparse
 parser = argparse.ArgumentParser(description='This python program applies LSB Steganography to an audio file')
 
 def main(av):
-    bgroup = parser. add_argument_group("Hide binary with steg")
+    bgroup = parser.add_argument_group("Shift right to zero-fill before Xor, strategy")
+    #bgroup.add_argument('-sin-max', help='Provide the original audio')
+    #bgroup.add_argument('-cos-max', help='Shift to the right, in a cosine fashion with max amplitude')
+    bgroup.add_argument('-b', help='Shift to the right by b bits') # naive
+    #bgroup.add_argument('-period', help='Period in frames, if the strategy is cyclic') #compulsory if periodic, TODO figure it out later
+
+    bgroup = parser.add_argument_group("Hide binary with steg")
     bgroup.add_argument('-audio', help='Provide the original audio')
     bgroup.add_argument('-binary', help='The binary file to be obfuscated in the audio')
     bgroup.add_argument('-steg-out', help='The resulting steganographic audio')
@@ -78,10 +120,10 @@ def main(av):
 
     args = parser.parse_args(av[1:])
 
-    if len(av) == 7:
-	binary_steg_hide(args.audio, args.binary, args.steg_out)
-    elif len(av) == 5:
-        binary_steg_reveal(args.steg_audio, args.out)
+    if len(av) == 8:
+	binary_steg_hide_naive(args.audio, args.binary, args.steg_out, args.b)
+    elif len(av) == 6:
+        binary_steg_reveal_naive(args.steg_audio, args.out, args.b)
     else:
         print "Usage: '", av[0], "-h' for help", "\n", args
 

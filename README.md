@@ -21,10 +21,10 @@ python lsb_steg_audio.py ...
 Roadmap
 -------
 
-Wav
-* wav, skip initial 44 kbytes of metadata
+WAV
+* wav, skip initial 44 kbytes of metadata (microsoft format)
 * Determine LSBW (least significant bit width), before people start hearing it, although a histogram could easily reveal it...
-* Will provide parameter to adjust LSBW, or even variable bit width, e.g. sinusoidal, harmonics, cyclic, stochastic?
+* Will provide parameter to adjust LSBW, or even variable bit width, e.g. sinusoidal, harmonics, stochastic?
 
 
 TIFF
@@ -34,11 +34,17 @@ FLAC
 * WAV to FLAC conversion
 
 Ogg-vorbis
-* 100% retention, non-lossy conversion
+* 100% retention (TODO determine how), wav to ogg == ogg to wav
+* invariant to psychoacoustic model?
 
 MP3
-* 100% retention, store payload within the audible range?
+* 100% retention (TODO determine how), idem
+* invariant to psychoacoustic model?
 
 Extras
 * unit test with audio sample
 * histogram comparison, i.e. before steg, after steg.
+* payload compression (nah, KISS)
+
+Experimental
+* load frames to GPGPU, collate results, then write collated results to file
