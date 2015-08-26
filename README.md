@@ -1,6 +1,8 @@
 LSB Steganography on non-lossy digital audio files
 ==================================================
 
+Inspired by the TV-series: Mr. Robot.
+
 Setup
 -----
 
@@ -48,3 +50,9 @@ Extras
 
 Experimental
 * load frames to GPGPU, collate results, then write collated results to file
+
+Run tests
+---------
+```bash
+python -m doctest -v lsb_steg_audio.py # work in progress (2015-08)
+```

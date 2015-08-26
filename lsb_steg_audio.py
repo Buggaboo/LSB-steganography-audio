@@ -48,14 +48,16 @@ UNCONFIRMED_MAGIC_NUMBER_WAV_HEADER_FRAMES = 44
 '''
 xor bits of the payload to the current frame
 '''
-def lsb_steg_op(bits, frame):
+def lsb_steg_single_channel_op(bits, frame):
     # bits size determines how much to shift by
-    shift_by_n = bits.bit_length()
+    # shift_by_n = bits.bit_length()
     # shit... you're screwing with one channel
 #    frame >> shift_by_n
 #    frame << shift_by_n # the LSBs are zeroed out
     pass
 
+def lsb_steg_dual_channel_op(bits_left, bits_right, frame):
+    pass
 
 '''
 Methods to expose this functionality to the command-line
@@ -66,8 +68,9 @@ def binary_steg_hide_naive(audio, binary, result, steg_bit_depth):
 
         # retain params
 	params = w.getparams()
-	print params
         wresult.setparams(params)
+	print params
+	nchannels, sampwidth, framerate, nframes, comptype, compname = params
 
         # TODO calculate if the payload will actually fit, depending on the LSB Steg strategy
         bits = []
@@ -76,18 +79,21 @@ def binary_steg_hide_naive(audio, binary, result, steg_bit_depth):
 	# try not to damage the metadata
 	w.getnframes(UNCONFIRMED_MAGIC_NUMBER_WAV_HEADER_FRAMES) 
 
+	# decompose payload (this depends on the strategy)
+        # TODO use bitarray thingy library, this also depends on the nchannels
+
 	# superduper inefficient in-memory operation
         # IDEA use decorator to plugin LSB Steg algorithm
         newframes = []
 
-	for i in range(w.getnframes()):
-	    newframes.append(lsb_steg_naive_op(bits[i], w.readframes(1)))
+#	for i in range(w.getnframes()):
+#	    newframes.append(lsb_steg_op(bits[i], w.readframes(1), ))
 
 	# collate steg'd results
-        wresult.writeframesraw(''.join(newframes))
+#        wresult.writeframesraw(''.join(newframes))
         
         wresult.close()
-        w.close()
+        #w.close()
 
 def binary_steg_reveal_naive(steg_audio, out, steg_bit_depth):
     pass
@@ -118,6 +124,11 @@ def main(av):
     bgroup.add_argument('-steg-audio', help='The steganographic audio')
     bgroup.add_argument('-out', help='The original binary')
 
+    if av[i] == 'test':
+      import doctest
+      doctest.testmod()
+      return
+
     args = parser.parse_args(av[1:])
 
     if len(av) == 8:
@@ -127,7 +138,7 @@ def main(av):
     else:
         print "Usage: '", av[0], "-h' for help", "\n", args
 
-if __name__=="__main__":
+if __name__ == "__main__":
     from sys import argv as av
     main(av)
 
