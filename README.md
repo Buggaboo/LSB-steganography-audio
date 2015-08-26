@@ -23,8 +23,8 @@ Roadmap
 
 WAV
 * wav, skip initial 44 kbytes of metadata (microsoft format)
-* Determine LSBW (least significant bit width), before people start hearing it, although a histogram could easily reveal it...
-* Will provide parameter to adjust LSBW, or even variable bit width, e.g. sinusoidal, harmonics, stochastic?
+* Determine LSBW (least significant bit width, apparently WAV is little endian), before people start hearing it, although a histogram could easily reveal it...
+* Will provide parameter to adjust LSBW, or even variable bit width, e.g. sinusoidal, harmonics, stochastic by hash?
 
 
 TIFF
