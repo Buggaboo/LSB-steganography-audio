@@ -1,5 +1,5 @@
-LSB Steganography on non-lossy digital audio files
-==================================================
+LSB Steganography on non-lossy digital audio formats
+====================================================
 
 Inspired by the TV-series: Mr. Robot.
 
@@ -56,3 +56,12 @@ Run tests
 ```bash
 python -m doctest -v lsb_steg_audio.py # work in progress (2015-08)
 ```
+
+Research questions
+------------------
+* What is the optimal distribution of samples to evade aural/visual detection?
+  * Evade visual detection: naively wiping the LSBs for all the samples is stupid.
+  * What is the LSB bit-depth, sample distribution that will optimally take advantage of psycho-acoustics? Hide in the non-audible frequencies, this undermines visual invisibility? Just at the edge will do.
+  * Instead of integrally populating all samples, how about hijacking a select number of inaudible samples completely for payload distribution?
+* How does distribution affect post-compression format conversion? I assume bigger post-compression files.
+
