@@ -45,95 +45,61 @@ echo 'import site; site.addsitedir("/usr/local/lib/python2.7/site-packages")' >>
 """
 
 import wave
+from contextlib import closing
 
-UNCONFIRMED_MAGIC_NUMBER_WAV_HEADER_FRAMES = 44
+def bits(f):
+    bytes = (ord(b) for b in f.read())
+    for b in bytes:
+        for i in xrange(8):
+            yield (b >> i) & 1
 
-'''
-xor bits of the payload to the current frame
-'''
-def lsb_steg_single_channel_op(bits, frame):
-    # bits size determines how much to shift by
-    # shift_by_n = bits.bit_length()
-    # shit... you're screwing with one channel
-#    frame >> shift_by_n
-#    frame << shift_by_n # the LSBs are zeroed out
-    pass
+def read_bits_from_payload(filename):
+    with closing(open(filename, 'r')) as payload:
+    for b in bits(payload):
+        yield b # TODO yield each bit and write bit away to lsb of wav frame
 
-def lsb_steg_dual_channel_op(bits_left, bits_right, frame):
-    pass
+def write_steg_frames(params, inwav_file, payload_filename, result_filename):
+    nchannels, sampwidth, framerate, nframes, comptype, compname = params
+    frames = inwav_file.readframes(nframes-1)
+    read_bits_from_payload(payload_filename)
+
 
 '''
 Methods to expose this functionality to the command-line
 '''
-def binary_steg_hide_naive(audio, binary, result, steg_bit_depth):
-    with wave.open(audio) as w:
-        wresult = wave.open(result, 'wb+')
+def steg_hide_naive(audio_filename, payload_filename, result_filename):
+    with closing(wave.open(audio_filename, 'r')) as inwav_file:
+        write_steg_frames(w.getparams(), inwav_file, payload_filename, result_filename)
 
-        # retain params
-	params = w.getparams()
-        wresult.setparams(params)
-	print params
-	nchannels, sampwidth, framerate, nframes, comptype, compname = params
-
-        # TODO calculate if the payload will actually fit, depending on the LSB Steg strategy
-        bits = []
-        samplewidth = w.getsamplewidth() # also, by default WAV is little endian, i.e. least significant bits have the lowest addresses
-
-	# try not to damage the metadata
-	w.getnframes(UNCONFIRMED_MAGIC_NUMBER_WAV_HEADER_FRAMES)
-
-	# decompose payload (this depends on the strategy)
-        # TODO use bitarray thingy library, this also depends on the nchannels
-
-	# superduper inefficient in-memory operation
-        # IDEA use decorator to plugin LSB Steg algorithm
-        newframes = []
-
-#	for i in range(w.getnframes()):
-#	    newframes.append(lsb_steg_op(bits[i], w.readframes(1), ))
-
-	# collate steg'd results
-#        wresult.writeframesraw(''.join(newframes))
-        
-        wresult.close()
-        #w.close()
-
-
-def binary_steg_reveal_naive(steg_audio, out, steg_bit_depth):
+def steg_reveal_naive(steg_audio, out):
     pass
-#    inp = cv.Loadaudio(steg_audio)
-#    steg = LSBSteg(inp)
-#    bin = steg.unhideBin()
-#    f = open(out, "wb")
-#    f.write(bin)
-#    f.close()
 
 import argparse
 
 parser = argparse.ArgumentParser(description='This python program applies LSB Steganography to an audio file')
 
 def main(av):
-    bgroup = parser.add_argument_group("Shift right to zero-fill before Xor, strategy")
+    #bgroup = parser.add_argument_group("Shift right to zero-fill before Xor, strategy")
     #bgroup.add_argument('-sin-max', help='Provide the original audio')
     #bgroup.add_argument('-cos-max', help='Shift to the right, in a cosine fashion with max amplitude')
-    bgroup.add_argument('-b', help='Shift to the right by b bits') # naive
+    #bgroup.add_argument('-b', help='Shift to the right by b bits') # naive
     #bgroup.add_argument('-period', help='Period in frames, if the strategy is cyclic') #compulsory if periodic, TODO figure it out later
 
     bgroup = parser.add_argument_group("Hide binary with steg")
     bgroup.add_argument('-audio', help='Provide the original audio')
-    bgroup.add_argument('-binary', help='The binary file to be obfuscated in the audio')
+    bgroup.add_argument('-in', help='The payload file to be hidden in the audio')
     bgroup.add_argument('-steg-out', help='The resulting steganographic audio')
 
     bgroup = parser.add_argument_group("Reveal binary")
     bgroup.add_argument('-steg-audio', help='The steganographic audio')
-    bgroup.add_argument('-out', help='The original binary')
+    bgroup.add_argument('-out', help='The original input')
 
     args = parser.parse_args(av[1:])
 
     if len(av) == 8:
-	binary_steg_hide_naive(args.audio, args.binary, args.steg_out, args.b)
+        steg_hide_naive(args.audio, args.in, args.steg_out)
     elif len(av) == 6:
-        binary_steg_reveal_naive(args.steg_audio, args.out, args.b)
+        steg_reveal_naive(args.steg_audio, args.out)
     else:
         print "Usage: '", av[0], "-h' for help", "\n", args
 
